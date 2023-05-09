@@ -6,7 +6,7 @@ from functools import wraps
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
-app.config.from_pyfile('/home/mugdha/Projects/Library_Management_System/config.py')
+app.config.from_pyfile('D:\Library-Management-System\config.py')
 
 # Initializing MySQL
 mysql = MySQL(app)
@@ -40,15 +40,17 @@ def register():
             email = form.email.data
             mobile = form.mobile.data
             studentUsername = form.studentUsername.data
-            password = sha256_crypt.encrypt(str(form.password.data))
+            password = sha256_crypt.hash(str(form.password.data))
 
             # Creating the cursor
             cur = mysql.connection.cursor()
 
+            print(password)
+
             # Executing Query
             cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", (studentName, email, mobile, studentUsername, password))
 
-
+            
             # Commit to database
             mysql.connection.commit()
 
@@ -127,7 +129,7 @@ def bookslist():
     cur = mysql.connection.cursor()
 
     # Execute
-    result = cur.execute("SELECT bookName, count(bookName) AS count FROM books GROUP BY bookName")
+    result = cur.execute("SELECT bookName, sum(available) AS count FROM books GROUP BY bookName")
 
     books = cur.fetchall()
 
@@ -154,7 +156,7 @@ def student_detail():
     transactions = cur.fetchall()
     cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
     fine=cur.fetchone()
-    print fine
+    print(fine)
     if result > 0:
         return render_template('student_detail.html', transactions = transactions,fine=fine)
     else:
