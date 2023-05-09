@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<body background = "https://images.pexels.com/photos/48126/books-education-school-literature-48126.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"></body>
+<div class="jumbotron text-center">
+  <h1>Welcome to Library Management System</h1>
+  <p class="lead">
+      This was created by: Darshi Shah ( 161071008 ), Mugdha Bhagwat ( 161071050 ), Prachiti Parkar ( 161071059 )
+  </p>
+
+  {% if session.logged_in == NULL %}
+    <a href="/register" class="btn btn-primary btn-lg"> Register </a>
+    <a href="/login" class="btn btn-success btn-lg"> Login </a>
+  {% endif %}
+
+</div>
+{% endblock %}
