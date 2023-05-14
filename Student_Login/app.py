@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
+from views import view
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -19,22 +20,12 @@ def index():
 def about():
     return render_template('about.html')
 
-# Register Form Class
-class RegisterForm(Form):
-    studentName = StringField("Student Name", [validators.Length(min=1, max=100)])
-    studentUsername = StringField('Username- Student ID number', [validators.Length(min=1, max=25)])
-    email = StringField('Email', [validators.Length(min=1, max=50)])
-    mobile = StringField("Mobile Number", [validators.Length(min=12, max=12)])
-    password = PasswordField('Password', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message='Passwords do not match')
-        ])
-    confirm = PasswordField('Confirm Password')
+
 
 #User Registration
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-        form = RegisterForm(request.form)
+        form = view.RegisterForm(request.form)
         if request.method == 'POST' and form.validate():
             studentName = form.studentName.data
             email = form.email.data

@@ -9,7 +9,7 @@ from datetime import timedelta
 
 app = Flask(__name__)
 
-app.config.from_pyfile('/home/prachiti/Desktop/proj/Library-Management-System/config.py')
+app.config.from_pyfile('D:\Library-Management-System\config.py')
 
 # Initializing MySQL
 mysql = MySQL(app)
@@ -353,7 +353,7 @@ def analyse():
     cur = mysql.connection.cursor()
     cur.execute("select studentUsername,count(*) as num from transactions group by studentUsername,fine order by fine  desc, num desc limit 5")
     data = cur.fetchall()
-    print data
+    print(data)
     mysql.connection.commit()
     return render_template('analyse.html', data=data)
 

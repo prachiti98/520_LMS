@@ -12,7 +12,7 @@ CREATE TABLE staff(staff_id INT AUTO_INCREMENT PRIMARY KEY, staffName VARCHAR(10
 
 select * from staff;
 
-CREATE TABLE students(student_id INT PRIMARY KEY AUTO_INCREMENT, studentName VARCHAR(100), email VARCHAR(100),  mobile VARCHAR(12), studentUsername VARCHAR(100), password VARCHAR(50));
+CREATE TABLE students(student_id INT PRIMARY KEY AUTO_INCREMENT, studentName VARCHAR(100), email VARCHAR(100),  mobile VARCHAR(12), studentUsername VARCHAR(100), password VARCHAR(1000));
 
 select * from students;
 
@@ -32,6 +32,6 @@ FOR EACH ROW SET
 
 * Inserting values *
 
-INSERT INTO books VALUES(bookName)(("Introduction to Operating Systems")("Introduction to Operating Systems"));
+INSERT INTO books(bookName) VALUES('Introduction to Operating Systems');
 
 // INSERT INTO transactions(student_id, staff_id, book_id) VALUES(1, 1, 1);
