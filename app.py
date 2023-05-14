@@ -4,6 +4,7 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 from views import view
+from models import details
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -25,21 +26,23 @@ def about():
 #User Registration
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+        currentStudentDetails = details.StudentDetail()
         form = view.RegisterForm(request.form)
         if request.method == 'POST' and form.validate():
-            studentName = form.studentName.data
-            email = form.email.data
-            mobile = form.mobile.data
-            studentUsername = form.studentUsername.data
-            password = sha256_crypt.hash(str(form.password.data))
+            currentStudentDetails.studentName = form.studentName.data
+            currentStudentDetails.email = form.email.data
+            currentStudentDetails.mobile = form.mobile.data
+            currentStudentDetails.studentUsername = form.studentUsername.data
+            currentStudentDetails.password = sha256_crypt.hash(str(form.password.data))
 
             # Creating the cursor
             cur = mysql.connection.cursor()
 
-            print(password)
+            # print(password)
 
             # Executing Query
-            cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", (studentName, email, mobile, studentUsername, password))
+            cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", \
+                        (currentStudentDetails.studentName, currentStudentDetails.email, currentStudentDetails.mobile, currentStudentDetails.studentUsername, currentStudentDetails.password))
 
             
             # Commit to database
@@ -58,30 +61,30 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-
+        currentStudentDetail = details.StudentDetail()
         #Get form fields
-        studentUsername = request.form['studentUsername']
-        password_candidate = request.form['password']
+        currentStudentDetail.studentUsername = request.form['studentUsername']
+        currentStudentDetail.password = request.form['password']
 
         # Create Cursor
         cur = mysql.connection.cursor()
 
         # Get user by Username
-        result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [studentUsername])
+        result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [currentStudentDetail.studentUsername])
 
         if result > 0:
 
             # Get the stored hash
             data = cur.fetchone()
-            password = data['password']
+            originalPassword = data['password']
 
 
             # Comparing the Passwords
-            if sha256_crypt.verify(password_candidate, password):
+            if sha256_crypt.verify(currentStudentDetail.password, originalPassword):
 
                 # Password matched
                 session['logged_in'] = True
-                session['studentUsername'] = studentUsername
+                session['studentUsername'] = currentStudentDetail.studentUsername
                 # session['aadharNo'] = data['aadharNo']
 
                 flash('You have successfully logged in', 'success')
