@@ -148,11 +148,13 @@ def student_detail():
     result = cur.execute("SELECT * FROM transactions WHERE studentUsername = %s", (session['studentUsername'], )) 
 
     transactions = cur.fetchall()
-    cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
+    fine_result = cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
     fine=cur.fetchone()
-    print(fine)
-    if result > 0:
-        return render_template('student_detail.html', transactions = transactions,fine=fine)
+    
+    if result > 0 and fine_result > 0:
+        return render_template('student_detail.html', transactions = transactions,fine=fine['fine'])
+    elif result > 0:
+        return render_template('student_detail.html', transactions = transactions,fine=0)
     else:
         msg = 'No recorded transactions'
         return render_template('student_detail.html', msg= msg)
