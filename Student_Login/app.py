@@ -4,6 +4,11 @@ from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 from views import view
+from models import details
+from controllers.index import index_blueprint
+from controllers.about import about_blueprint
+from controllers.register import register_blueprint
+from controllers.bookslist import bookslist_blueprint
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -12,76 +17,84 @@ app.config.from_pyfile('D:\Library-Management-System\config.py')
 # Initializing MySQL
 mysql = MySQL(app)
 
-@app.route('/')
-def index():
-    return render_template('home.html')
+app.config['mysql'] = mysql
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+app.register_blueprint(index_blueprint)
+app.register_blueprint(about_blueprint)
+app.register_blueprint(register_blueprint)
+app.register_blueprint(bookslist_blueprint)
+# @app.route('/')
+# def index():
+#     return render_template('home.html')
+
+# @app.route('/about')
+# def about():
+#     return render_template('about.html')
 
 
 
-#User Registration
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-        form = view.RegisterForm(request.form)
-        if request.method == 'POST' and form.validate():
-            studentName = form.studentName.data
-            email = form.email.data
-            mobile = form.mobile.data
-            studentUsername = form.studentUsername.data
-            password = sha256_crypt.hash(str(form.password.data))
+# #User Registration
+# @app.route('/register')
+# def register():
+#         currentStudentDetails = details.StudentDetail()
+#         form = view.RegisterForm(request.form)
+#         if request.method == 'POST' and form.validate():
+#             currentStudentDetails.studentName = form.studentName.data
+#             currentStudentDetails.email = form.email.data
+#             currentStudentDetails.mobile = form.mobile.data
+#             currentStudentDetails.studentUsername = form.studentUsername.data
+#             currentStudentDetails.password = sha256_crypt.hash(str(form.password.data))
 
-            # Creating the cursor
-            cur = mysql.connection.cursor()
+#             # Creating the cursor
+#             cur = mysql.connection.cursor()
 
-            print(password)
+#             # print(password)
 
-            # Executing Query
-            cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", (studentName, email, mobile, studentUsername, password))
+#             # Executing Query
+#             cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", \
+#                         (currentStudentDetails.studentName, currentStudentDetails.email, currentStudentDetails.mobile, currentStudentDetails.studentUsername, currentStudentDetails.password))
 
             
-            # Commit to database
-            mysql.connection.commit()
+#             # Commit to database
+#             mysql.connection.commit()
 
-            # Close connection
-            cur.close()
+#             # Close connection
+#             cur.close()
 
-            flash("You are now registered.", 'success')
+#             flash("You are now registered.", 'success')
 
-            return redirect(url_for('login'))
+#             return redirect(url_for('login'))
 
-        return render_template('register.html', form= form )
+#         return render_template('register.html', form= form )
 
 # User Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-
+        currentStudentDetail = details.StudentDetail()
         #Get form fields
-        studentUsername = request.form['studentUsername']
-        password_candidate = request.form['password']
+        currentStudentDetail.studentUsername = request.form['studentUsername']
+        currentStudentDetail.password = request.form['password']
 
         # Create Cursor
         cur = mysql.connection.cursor()
 
         # Get user by Username
-        result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [studentUsername])
+        result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [currentStudentDetail.studentUsername])
 
         if result > 0:
 
             # Get the stored hash
             data = cur.fetchone()
-            password = data['password']
+            originalPassword = data['password']
 
 
             # Comparing the Passwords
-            if sha256_crypt.verify(password_candidate, password):
+            if sha256_crypt.verify(currentStudentDetail.password, originalPassword):
 
                 # Password matched
                 session['logged_in'] = True
-                session['studentUsername'] = studentUsername
+                session['studentUsername'] = currentStudentDetail.studentUsername
                 # session['aadharNo'] = data['aadharNo']
 
                 flash('You have successfully logged in', 'success')
@@ -111,27 +124,27 @@ def is_logged_in(f):
             return redirect(url_for('login'))
     return wrap
 
-# Creating the Books list
-@app.route('/bookslist')
-# @is_logged_in
-def bookslist():
+# # Creating the Books list
+# @app.route('/bookslist')
+# # @is_logged_in
+# def bookslist():
 
-    # Create Cursor
-    cur = mysql.connection.cursor()
+#     # Create Cursor
+#     cur = mysql.connection.cursor()
 
-    # Execute
-    result = cur.execute("SELECT bookName, sum(available) AS count FROM books GROUP BY bookName")
+#     # Execute
+#     result = cur.execute("SELECT bookName, sum(available) AS count FROM books GROUP BY bookName")
 
-    books = cur.fetchall()
+#     books = cur.fetchall()
 
-    if result > 0:
-        return render_template('bookslist.html', books = books)
-    else:
-        msg = 'No books found'
-        return render_template('bookslist.html', msg= msg)
+#     if result > 0:
+#         return render_template('bookslist.html', books = books)
+#     else:
+#         msg = 'No books found'
+#         return render_template('bookslist.html', msg= msg)
 
-    # Close connection
-    cur.close()
+#     # Close connection
+#     cur.close()
 
 # Personal Details
 @app.route('/student_detail')
@@ -145,11 +158,13 @@ def student_detail():
     result = cur.execute("SELECT * FROM transactions WHERE studentUsername = %s", (session['studentUsername'], )) 
 
     transactions = cur.fetchall()
-    cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
+    fine_result = cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
     fine=cur.fetchone()
-    print(fine)
-    if result > 0:
-        return render_template('student_detail.html', transactions = transactions,fine=fine)
+    
+    if result > 0 and fine_result > 0:
+        return render_template('student_detail.html', transactions = transactions,fine=fine['fine'])
+    elif result > 0:
+        return render_template('student_detail.html', transactions = transactions,fine=0)
     else:
         msg = 'No recorded transactions'
         return render_template('student_detail.html', msg= msg)
@@ -164,6 +179,7 @@ def logout():
     session.clear()
     flash('You have logged out.', 'success')
     return redirect(url_for('login'))
+
 
 
 if __name__ == '__main__':
