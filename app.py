@@ -5,6 +5,7 @@ from passlib.hash import sha256_crypt
 from functools import wraps
 from views import view
 from models import details
+from controllers.index import index_blueprint
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -13,9 +14,12 @@ app.config.from_pyfile('D:\Library-Management-System\config.py')
 # Initializing MySQL
 mysql = MySQL(app)
 
-@app.route('/')
-def index():
-    return render_template('home.html')
+
+app.register_blueprint(index_blueprint)
+
+# @app.route('/')
+# def index():
+#     return render_template('home.html')
 
 @app.route('/about')
 def about():
@@ -169,6 +173,7 @@ def logout():
     session.clear()
     flash('You have logged out.', 'success')
     return redirect(url_for('login'))
+
 
 
 if __name__ == '__main__':
