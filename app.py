@@ -8,6 +8,7 @@ from models import details
 from controllers.index import index_blueprint
 from controllers.about import about_blueprint
 from controllers.register import register_blueprint
+from controllers.bookslist import bookslist_blueprint
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -21,6 +22,7 @@ app.config['mysql'] = mysql
 app.register_blueprint(index_blueprint)
 app.register_blueprint(about_blueprint)
 app.register_blueprint(register_blueprint)
+app.register_blueprint(bookslist_blueprint)
 # @app.route('/')
 # def index():
 #     return render_template('home.html')
@@ -32,7 +34,7 @@ app.register_blueprint(register_blueprint)
 
 
 # #User Registration
-# @app.route('/register', methods=['GET', 'POST'])
+# @app.route('/register')
 # def register():
 #         currentStudentDetails = details.StudentDetail()
 #         form = view.RegisterForm(request.form)
@@ -122,27 +124,27 @@ def is_logged_in(f):
             return redirect(url_for('login'))
     return wrap
 
-# Creating the Books list
-@app.route('/bookslist')
-# @is_logged_in
-def bookslist():
+# # Creating the Books list
+# @app.route('/bookslist')
+# # @is_logged_in
+# def bookslist():
 
-    # Create Cursor
-    cur = mysql.connection.cursor()
+#     # Create Cursor
+#     cur = mysql.connection.cursor()
 
-    # Execute
-    result = cur.execute("SELECT bookName, sum(available) AS count FROM books GROUP BY bookName")
+#     # Execute
+#     result = cur.execute("SELECT bookName, sum(available) AS count FROM books GROUP BY bookName")
 
-    books = cur.fetchall()
+#     books = cur.fetchall()
 
-    if result > 0:
-        return render_template('bookslist.html', books = books)
-    else:
-        msg = 'No books found'
-        return render_template('bookslist.html', msg= msg)
+#     if result > 0:
+#         return render_template('bookslist.html', books = books)
+#     else:
+#         msg = 'No books found'
+#         return render_template('bookslist.html', msg= msg)
 
-    # Close connection
-    cur.close()
+#     # Close connection
+#     cur.close()
 
 # Personal Details
 @app.route('/student_detail')
