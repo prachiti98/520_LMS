@@ -6,6 +6,8 @@ from functools import wraps
 from views import view
 from models import details
 from controllers.index import index_blueprint
+from controllers.about import about_blueprint
+from controllers.register import register_blueprint
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
@@ -14,52 +16,54 @@ app.config.from_pyfile('D:\Library-Management-System\config.py')
 # Initializing MySQL
 mysql = MySQL(app)
 
+app.config['mysql'] = mysql
 
 app.register_blueprint(index_blueprint)
-
+app.register_blueprint(about_blueprint)
+app.register_blueprint(register_blueprint)
 # @app.route('/')
 # def index():
 #     return render_template('home.html')
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+# @app.route('/about')
+# def about():
+#     return render_template('about.html')
 
 
 
-#User Registration
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-        currentStudentDetails = details.StudentDetail()
-        form = view.RegisterForm(request.form)
-        if request.method == 'POST' and form.validate():
-            currentStudentDetails.studentName = form.studentName.data
-            currentStudentDetails.email = form.email.data
-            currentStudentDetails.mobile = form.mobile.data
-            currentStudentDetails.studentUsername = form.studentUsername.data
-            currentStudentDetails.password = sha256_crypt.hash(str(form.password.data))
+# #User Registration
+# @app.route('/register', methods=['GET', 'POST'])
+# def register():
+#         currentStudentDetails = details.StudentDetail()
+#         form = view.RegisterForm(request.form)
+#         if request.method == 'POST' and form.validate():
+#             currentStudentDetails.studentName = form.studentName.data
+#             currentStudentDetails.email = form.email.data
+#             currentStudentDetails.mobile = form.mobile.data
+#             currentStudentDetails.studentUsername = form.studentUsername.data
+#             currentStudentDetails.password = sha256_crypt.hash(str(form.password.data))
 
-            # Creating the cursor
-            cur = mysql.connection.cursor()
+#             # Creating the cursor
+#             cur = mysql.connection.cursor()
 
-            # print(password)
+#             # print(password)
 
-            # Executing Query
-            cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", \
-                        (currentStudentDetails.studentName, currentStudentDetails.email, currentStudentDetails.mobile, currentStudentDetails.studentUsername, currentStudentDetails.password))
+#             # Executing Query
+#             cur.execute("INSERT INTO students(studentName, email, mobile, studentUsername, password) VALUES(%s, %s, %s, %s, %s)", \
+#                         (currentStudentDetails.studentName, currentStudentDetails.email, currentStudentDetails.mobile, currentStudentDetails.studentUsername, currentStudentDetails.password))
 
             
-            # Commit to database
-            mysql.connection.commit()
+#             # Commit to database
+#             mysql.connection.commit()
 
-            # Close connection
-            cur.close()
+#             # Close connection
+#             cur.close()
 
-            flash("You are now registered.", 'success')
+#             flash("You are now registered.", 'success')
 
-            return redirect(url_for('login'))
+#             return redirect(url_for('login'))
 
-        return render_template('register.html', form= form )
+#         return render_template('register.html', form= form )
 
 # User Login
 @app.route('/login', methods=['GET', 'POST'])
