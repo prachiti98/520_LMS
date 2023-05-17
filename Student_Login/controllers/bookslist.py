@@ -13,7 +13,6 @@ bookslist_blueprint = Blueprint('bookslist_blueprint', __name__)
 
 # Creating the Books list
 @bookslist_blueprint.route('/bookslist')
-# @is_logged_in
 def bookslist():
     mysql = current_app.config['mysql']
     # Create Cursor

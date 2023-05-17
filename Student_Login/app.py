@@ -9,10 +9,11 @@ from controllers.index import index_blueprint
 from controllers.about import about_blueprint
 from controllers.register import register_blueprint
 from controllers.bookslist import bookslist_blueprint
+from controllers.login import login_blueprint,studentdetail_blueprint,logout_blueprint
 
 app = Flask(__name__)
 #/home/mugdha/Projects/Library_Management_System/config.py
-app.config.from_pyfile('D:\Library-Management-System\config.py')
+app.config.from_pyfile('D:/520_LMS/config.py')
 
 # Initializing MySQL
 mysql = MySQL(app)
@@ -23,6 +24,10 @@ app.register_blueprint(index_blueprint)
 app.register_blueprint(about_blueprint)
 app.register_blueprint(register_blueprint)
 app.register_blueprint(bookslist_blueprint)
+app.register_blueprint(logout_blueprint)
+app.register_blueprint(studentdetail_blueprint)
+app.register_blueprint(login_blueprint)
+
 # @app.route('/')
 # def index():
 #     return render_template('home.html')
@@ -67,62 +72,62 @@ app.register_blueprint(bookslist_blueprint)
 
 #         return render_template('register.html', form= form )
 
-# User Login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        currentStudentDetail = details.StudentDetail()
-        #Get form fields
-        currentStudentDetail.studentUsername = request.form['studentUsername']
-        currentStudentDetail.password = request.form['password']
+# # User Login
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     if request.method == 'POST':
+#         currentStudentDetail = details.StudentDetail()
+#         #Get form fields
+#         currentStudentDetail.studentUsername = request.form['studentUsername']
+#         currentStudentDetail.password = request.form['password']
 
-        # Create Cursor
-        cur = mysql.connection.cursor()
+#         # Create Cursor
+#         cur = mysql.connection.cursor()
 
-        # Get user by Username
-        result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [currentStudentDetail.studentUsername])
+#         # Get user by Username
+#         result = cur.execute("SELECT * FROM students WHERE studentUsername = %s", [currentStudentDetail.studentUsername])
 
-        if result > 0:
+#         if result > 0:
 
-            # Get the stored hash
-            data = cur.fetchone()
-            originalPassword = data['password']
+#             # Get the stored hash
+#             data = cur.fetchone()
+#             originalPassword = data['password']
 
 
-            # Comparing the Passwords
-            if sha256_crypt.verify(currentStudentDetail.password, originalPassword):
+#             # Comparing the Passwords
+#             if sha256_crypt.verify(currentStudentDetail.password, originalPassword):
 
-                # Password matched
-                session['logged_in'] = True
-                session['studentUsername'] = currentStudentDetail.studentUsername
-                # session['aadharNo'] = data['aadharNo']
+#                 # Password matched
+#                 session['logged_in'] = True
+#                 session['studentUsername'] = currentStudentDetail.studentUsername
+#                 # session['aadharNo'] = data['aadharNo']
 
-                flash('You have successfully logged in', 'success')
-                return redirect(url_for('bookslist'))
+#                 flash('You have successfully logged in', 'success')
+#                 return redirect(url_for('bookslist_blueprint.bookslist'))
 
-            else:
-                error = 'Invalid login.'
-                return render_template('login.html', error = error)
+#             else:
+#                 error = 'Invalid login.'
+#                 return render_template('login.html', error = error)
 
-            #Close connection
-            cur.close()
+#             #Close connection
+#             cur.close()
 
-        else:
-            error = 'Username not found.'
-            return render_template('login.html', error = error)
+#         else:
+#             error = 'Username not found.'
+#             return render_template('login.html', error = error)
 
-    return render_template('login.html')
+#     return render_template('login.html')
 
-# Check if user logged in
-def is_logged_in(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args,**kwargs)
-        else:
-            flash('Unauthorized, please Login.', 'danger')
-            return redirect(url_for('login'))
-    return wrap
+# # Check if user logged in
+# def is_logged_in(f):
+#     @wraps(f)
+#     def wrap(*args, **kwargs):
+#         if 'logged_in' in session:
+#             return f(*args,**kwargs)
+#         else:
+#             flash('Unauthorized, please Login.', 'danger')
+#             return redirect(url_for('login'))
+#     return wrap
 
 # # Creating the Books list
 # @app.route('/bookslist')
@@ -146,39 +151,39 @@ def is_logged_in(f):
 #     # Close connection
 #     cur.close()
 
-# Personal Details
-@app.route('/student_detail')
-@is_logged_in
-def student_detail():
+# # Personal Details
+# @app.route('/student_detail')
+# @is_logged_in
+# def student_detail():
 
-    # Create Cursor
-    cur = mysql.connection.cursor()
+#     # Create Cursor
+#     cur = mysql.connection.cursor()
 
-    # Execute
-    result = cur.execute("SELECT * FROM transactions WHERE studentUsername = %s", (session['studentUsername'], )) 
+#     # Execute
+#     result = cur.execute("SELECT * FROM transactions WHERE studentUsername = %s", (session['studentUsername'], )) 
 
-    transactions = cur.fetchall()
-    fine_result = cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
-    fine=cur.fetchone()
+#     transactions = cur.fetchall()
+#     fine_result = cur.execute("select fine from transactions where studentUsername like %s",(session['studentUsername'], ))
+#     fine=cur.fetchone()
     
-    if result > 0 and fine_result > 0:
-        return render_template('student_detail.html', transactions = transactions,fine=fine['fine'])
-    elif result > 0:
-        return render_template('student_detail.html', transactions = transactions,fine=0)
-    else:
-        msg = 'No recorded transactions'
-        return render_template('student_detail.html', msg= msg)
+#     if result > 0 and fine_result > 0:
+#         return render_template('student_detail.html', transactions = transactions,fine=fine['fine'])
+#     elif result > 0:
+#         return render_template('student_detail.html', transactions = transactions,fine=0)
+#     else:
+#         msg = 'No recorded transactions'
+#         return render_template('student_detail.html', msg= msg)
 
-    # Close connection
-    cur.close()
+#     # Close connection
+#     cur.close()
 
-# Logout
-@app.route('/logout')
-@is_logged_in
-def logout():
-    session.clear()
-    flash('You have logged out.', 'success')
-    return redirect(url_for('login'))
+# # Logout
+# @app.route('/logout')
+# @is_logged_in
+# def logout():
+#     session.clear()
+#     flash('You have logged out.', 'success')
+#     return redirect(url_for('login'))
 
 
 
